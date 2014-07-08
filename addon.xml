@@ -1,0 +1,16 @@
+<?xml version="1.0" ?><addon id="script.module.githubissuereporter" name="GitHub Issue Reporter" provider-name="xbmc-catchuptv-au" version="0.9.0">
+  <requires>
+    <import addon="xbmc.python" version="2.1.0" />
+    <import addon="script.module.simplejson" />
+  </requires>
+  <extension point="xbmc.python.module" library="lib" />
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary>GitHub Issue Reporter</summary>
+    <description>GitHub Issue Reporter</description>
+    <disclaimer></disclaimer>
+    <license>MIT License</license>
+    <website>https://github.com/xbmc-catchuptv-au/script.module.githubissuereporter</website>
+    <source>https://github.com/xbmc-catchuptv-au/script.module.githubissuereporter.git</source>
+  </extension>
+</addon>
