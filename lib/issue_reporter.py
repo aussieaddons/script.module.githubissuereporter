@@ -28,6 +28,7 @@ import re
 import sys
 import urllib2
 import xbmc
+import issue_reporter_utils as utils
 
 from datetime import datetime
 from os.path import join, normpath, dirname, abspath, isfile
@@ -37,52 +38,24 @@ try:
 except ImportError:
   import json
 
-GITHUB_API_AUTH = 'eGJtY2JvdDo1OTQxNTJjMTBhZGFiNGRlN2M0YWZkZDYwZGQ5NDFkNWY4YmIzOGFj'
-GIST_API_URL = 'https://api.github.com/gists'
-
 LOG_FILTERS = (
   ('//.+?:.+?@', '//[FILTERED_USER]:[FILTERED_PASSWORD]@'),
   ('<user>.+?</user>', '<user>[FILTERED_USER]</user>'),
   ('<pass>.+?</pass>', '<pass>[FILTERED_PASSWORD]</pass>'),
 )
 
-def get_module_version():
-  """
-      Try and get module version from addon.xml
-  """
-  try:
-    addon_xml = join(normpath(join(dirname(abspath(abspath(__file__))), '..')),'addon.xml')
-    with open(addon_xml, 'r') as f:
-      addon_xml_data = f.read()
-    return re.compile(r'<addon[^>]*version="([\d.]*)"').search(addon_xml_data).group(1)
-  except:
-    return None
-
-VERSION = get_module_version()
+VERSION = utils.get_module_version()
 
 class IssueReporter:
   def __init__(self, config={}):
-    default_config = {
-      'github_api_auth': GITHUB_API_AUTH,
-      'gist_api_url': GIST_API_URL,
-      'addon_id': self.get_addon_data('id'),
-      'addon_name': self.get_addon_data('name'),
-      'addon_version': self.get_addon_data('version'),
-    }
-    default_config.update(config)
-    self.config = default_config
-
-    if not 'github_api_url' in self.config:
-      raise Exception('GitHub API URL must be set in IssueReporter configuration`')
+    self.config = utils.build_config(config)
 
     if 'logger' in self.config:
       self.log = self.config['logger']
     else:
       # Fallback logger, it is recommended to pass one in as the default
       # is pretty ugly in the XBMC logs
-      import logging
-      logging.basicConfig(level=logging.DEBUG)
-      self.log = logging.getLogger(__name__)
+      self.log = utils.build_logger(__name__)
 
   def make_request(self, url):
     """
@@ -91,18 +64,8 @@ class IssueReporter:
     return urllib2.Request(url, headers={
       "Authorization": "Basic %s" % self.config['github_api_auth'],
       "Content-Type": "application/json",
-      "User-Agent": '%s/%s' % (self.config['addon_id'], self.config['addon_version'])
+      "User-Agent": '%s/%s script.module.githubissuereporter/%s' % (self.config['addon_id'], self.config['addon_version'], VERSION)
     })
-
-  def get_addon_data(self, prop):
-    """
-        Try and get addon data
-    """
-    try:
-      import xbmcaddon
-      return xbmcaddon.Addon().getAddonInfo(prop)
-    except:
-      return None
 
   def get_public_ip(self):
     """
